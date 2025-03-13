@@ -1,75 +1,55 @@
-import React from 'react'
-import { useReducer } from 'react'
-import { useState } from 'react'
+import React, { useEffect, useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { addTodo, delete_todo, getAllTodos, toggleTodoStatus, filterTasks } from '../redux/actions';
+import '../style/todoReducer.css'
 
-const initialState = {
-    todos: [],
-    loading: true,
-    errorMsg: ''
-}
-
-const ADD_TODO = 'ADD_TODO'
-const EDIT_TODO = 'EDIT_TODO'
-
-const todoReducer = (state, action) => {
-    // console.log(action, "= action")
-    // console.log(state, "= state")
-
-    switch (action.type) {
-        case ADD_TODO:
-            return {
-                ...state, todos: [...state.todos, action.payload]
-            }
-        case EDIT_TODO:
-            return {
-
-            }
-        default:
-            return state
-    }
-}
 export const TodoReducer = () => {
-    const [todosList, dispatch] = useReducer(todoReducer, initialState)
-    const todos = todosList.todos
-    console.log(todos, 'todos list')
-    const [todo, setTodo] = useState({ text: '', priority: '' })
-   
-    const addTodo = (e) => {  
-        e.preventDefault()
-        // console.log(todo)
-        if(todo.text == '' || todo.priority == "") {
-            alert("Please give the task and priority not Empty!")
-            return
+    const dispatch = useDispatch();
+    const todoArr = useSelector(state => state.todos);
+    const todoRef = useRef(null);
+
+    useEffect(() => {
+        dispatch(getAllTodos());
+    }, []);
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (todoRef.current.value === '') {
+            alert('The todo is Empty. Please enter a todo!');
+            return;
         }
-        dispatch({ type: ADD_TODO, payload: {...todo, id: Date.now() }})
-        setTodo({ text: '', priority: '' })
-    }
+        const todoObj = { task: todoRef.current.value, id: Date.now(), isCompleted: false };
+        dispatch(addTodo(todoObj));
+        todoRef.current.value = "";
+    };
 
-    const handleChange = (e) => {
-        const { name, value } = e.target
-        setTodo({...todo, [name]: value})
-    }
-  return (
-    <div>
-        <h1>Todo App using redux-thunk</h1>
-        <form onSubmit={addTodo}>
-            <input onChange={handleChange} name="text" type="text" value={todo.text} placeholder="enter todo" />
-            <select onChange={handleChange} name="priority" value={todo.priority} id="priority">
-                <option value="">Select</option>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
-            </select>
-            <input type="submit" value='Add Todo' />
-        </form>
+    return (
+        <div className="container">
+            <h1>Todo App using Redux</h1>
+            <form onSubmit={handleSubmit}>
+                <input type="text" placeholder="Enter todo" ref={todoRef} />
+                <input type="submit" value="Add Todo" />
+            </form>
 
-        <div>
-            {todos.map((todo) => (
-                <div key={todo.id}>
-                    <p><strong>{todo.text}</strong> {todo.priority}</p>
-                </div>
-            ))}
+            <div className="filter-buttons">
+                <button onClick={() => dispatch(getAllTodos())}>All</button>
+                <button onClick={() => dispatch(filterTasks("pending"))}>Pending</button>
+                <button onClick={() => dispatch(filterTasks("completed"))}>Completed</button>
+            </div>
+
+            <div className="todo-list">
+                {todoArr.map(todo => (
+                    <div className={`todo-item ${todo.isCompleted ? 'completed' : ''}`} key={todo.id}>
+                        <strong>{todo.task}</strong>
+                        <div>
+                            <button className="status-btn" onClick={() => dispatch(toggleTodoStatus(todo.id))}>
+                                {todo.isCompleted ? 'Completed' : 'Pending'}
+                            </button>
+                            <button className="delete-btn" onClick={() => dispatch(delete_todo(todo.id))}>Delete</button>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
-    </div>
-  )
-}
+    );
+};
