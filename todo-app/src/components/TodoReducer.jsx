@@ -28,7 +28,7 @@ export const TodoReducer = () => {
             <h1>Todo App using Redux</h1>
             <form onSubmit={handleSubmit}>
                 <input type="text" placeholder="Enter todo" ref={todoRef} />
-                <input type="submit" value="Add Todo" />
+                <input style={{marginTop: '20px'}} type="submit" value="Add Todo" />
             </form>
 
             <div className="filter-buttons">
